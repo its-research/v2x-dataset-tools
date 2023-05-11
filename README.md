@@ -17,8 +17,8 @@ ln -s your_path_to_v2x_datasets datasets
 ## HowTo
 
 ```shell
-python v2x_datasets_tools/visualize/vis_label_in_image.py
-python v2x_datasets_tools/visualize/vis_label_in_3d.py
+python v2x_datasets_tools/visualization/vis_label_in_image.py
+python v2x_datasets_tools/visualization/vis_label_in_3d.py
 ```
 
 ## Notice
@@ -62,3 +62,4 @@ python setup.py install
 ## Reference
 
 + [DAIR-V2X](https://github.com/AIR-THU/DAIR-V2X)
++ [Where2comm](https://github.com/MediaBrain-SJTU/Where2comm)
