@@ -7,7 +7,7 @@ echo "Running isort ..."
 isort --atomic .
 
 echo "Running black ..."
-black -l 100 .
+black -l 180 .
 
 echo "Running flake8 ..."
 if [ -x "$(command -v flake8-3)" ]; then

@@ -6,3 +6,8 @@ flake8-black
 flake8-bugbear
 flake8-comprehensions
 simple-parsing
+numpy
+vedo
+opencv-python
+matplotlib
+open3d

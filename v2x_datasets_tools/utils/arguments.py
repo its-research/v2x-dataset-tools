@@ -8,6 +8,4 @@ from simple_parsing import choice
 class DatasetsArguments:
     """Datasets Arguments"""
 
-    dataset_type: str = choice(
-        "V2X-Seq-SPD", "V2X-Seq-TFD", "DAIR-V2X-I", "DAIR-V2X-V", "DAIR-V2X-C", default="DAIR-V2X-C"
-    )
+    dataset_type: str = choice("V2X-Seq-SPD", "V2X-Seq-TFD", "DAIR-V2X-I", "DAIR-V2X-V", "DAIR-V2X-C", default="DAIR-V2X-C")
