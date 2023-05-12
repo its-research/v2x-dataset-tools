@@ -11,3 +11,4 @@ vedo
 opencv-python
 matplotlib
 open3d
+shapely

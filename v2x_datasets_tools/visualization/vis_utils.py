@@ -80,22 +80,9 @@ def plot_rect3d_on_img(img, num_rects, rect_corners, color=(0, 255, 0), thicknes
         color (tuple[int]): The color to draw bboxes. Default: (0, 255, 0).
         thickness (int, optional): The thickness of bboxes. Default: 1.
     """
-    line_indices = (
-        (0, 1),
-        (0, 3),
-        (0, 4),
-        (1, 2),
-        (1, 5),
-        (3, 2),
-        (3, 7),
-        (4, 5),
-        (4, 7),
-        (2, 6),
-        (5, 6),
-        (6, 7),
-    )
+    line_indices = ((0, 1), (0, 3), (0, 4), (1, 2), (1, 5), (3, 2), (3, 7), (4, 5), (4, 7), (2, 6), (5, 6), (6, 7))
     for i in range(num_rects):
-        corners = rect_corners[i].astype(np.int32)
+        corners = rect_corners[i].astype(np.int)
 
         for start, end in line_indices:
             radius = 5
@@ -131,8 +118,7 @@ def points_cam2img(points_3d, calib_intrinsic, with_depth=False):
     points_shape = np.concatenate([points_num, [1]], axis=0)
     points_2d_shape = np.concatenate([points_num, [3]], axis=0)
     # assert len(calib_intrinsic.shape) == 2, 'The dimension of the projection' \
-    #                                  f' matrix should be 2 instead of \
-    #                                  {len(calib_intrinsic.shape)}.'
+    #                                  f' matrix should be 2 instead of {len(calib_intrinsic.shape)}.'
     # d1, d2 = calib_intrinsic.shape[:2]
     # assert (d1 == 3 and d2 == 3) or (d1 == 3 and d2 == 4) or (
     #         d1 == 4 and d2 == 4), 'The shape of the projection matrix' \
