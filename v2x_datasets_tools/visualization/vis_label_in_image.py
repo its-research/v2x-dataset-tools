@@ -2,7 +2,7 @@ import argparse
 import os
 import os.path as osp
 
-from vis_utils import get_cam_8_points, read_json, vis_label_in_img
+from v2x_datasets_tools.visualization.vis_utils import get_cam_8_points, read_json, vis_label_in_img
 
 
 def vis_label_in_image(path, save_path):

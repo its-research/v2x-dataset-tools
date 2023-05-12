@@ -18,8 +18,10 @@ ln -s your_path_to_v2x_datasets datasets
 ## HowTo
 
 ```shell
-python v2x_datasets_tools/visualization/vis_label_in_image.py
-python v2x_datasets_tools/visualization/vis_label_in_3d.py
+python visual.py
+
+# python v2x_datasets_tools/visualization/vis_label_in_image.py
+# python v2x_datasets_tools/visualization/vis_label_in_3d.py
 ```
 
 ## Notice
