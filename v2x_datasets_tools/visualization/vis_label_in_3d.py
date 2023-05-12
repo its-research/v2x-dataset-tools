@@ -193,11 +193,8 @@ def plot_pred_single(args):
     mlab.show()
 
 
-def plot_label_pcd(args):
-    pcd_path = args.pcd_path
+def plot_label_pcd(pcd_path, label_path):
     x, y, z = read_pcd(pcd_path)
-
-    label_path = args.label_path
     boxes = read_label_bboxes(label_path)
 
     plot_box_pcd(x, y, z, boxes)
@@ -223,4 +220,4 @@ if __name__ == "__main__":
         plot_pred_single(args)
 
     if args.task == "pcd_label":
-        plot_label_pcd(args)
+        plot_label_pcd(args.pcd_path, args.lable_path)

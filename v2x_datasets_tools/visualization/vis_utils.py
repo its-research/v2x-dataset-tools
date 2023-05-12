@@ -235,6 +235,6 @@ def vis_label_in_img(camera_8_points_list, img_path, path_camera_intrinsic, save
 
     plot_rect3d_on_img(img, num_bbox, uv_origin)
     cv2.imwrite(os.path.join(save_path, index + ".png"), img)
-    print(index)
+    # print(index)
 
     return True
