@@ -4,6 +4,7 @@
 
 ```shell
 pip install -r requirements.txt
+python setup.py install 
 ```
 
 ### Example Datasets

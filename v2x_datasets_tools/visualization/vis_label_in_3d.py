@@ -9,16 +9,7 @@ from pypcd import pypcd
 from vis_utils import id_to_str, load_pkl
 
 
-def draw_boxes3d(
-    boxes3d,
-    fig,
-    arrows=None,
-    color=(1, 0, 0),
-    line_width=2,
-    draw_text=True,
-    text_scale=(1, 1, 1),
-    color_list=None,
-):
+def draw_boxes3d(boxes3d, fig, arrows=None, color=(1, 0, 0), line_width=2, draw_text=True, text_scale=(1, 1, 1), color_list=None):
     """
     boxes3d: numpy array (n,8,3) for XYZs of the box corners
     fig: mayavi figure handler
@@ -102,13 +93,7 @@ def read_pcd(pcd_path):
 def get_lidar_3d_8points(obj_size, yaw_lidar, center_lidar):
     center_lidar = [center_lidar[0], center_lidar[1], center_lidar[2]]
 
-    lidar_r = np.matrix(
-        [
-            [math.cos(yaw_lidar), -math.sin(yaw_lidar), 0],
-            [math.sin(yaw_lidar), math.cos(yaw_lidar), 0],
-            [0, 0, 1],
-        ]
-    )
+    lidar_r = np.matrix([[math.cos(yaw_lidar), -math.sin(yaw_lidar), 0], [math.sin(yaw_lidar), math.cos(yaw_lidar), 0], [0, 0, 1]])
     l, w, h = obj_size
     center_lidar[2] = center_lidar[2] - h / 2
     corners_3d_lidar = np.matrix(
@@ -163,6 +148,7 @@ def plot_box_pcd(x, y, z, boxes):
         figure=fig,
     )
     draw_boxes3d(np.array(boxes), fig, arrows=None)
+    mlab.savefig("test.png")
 
     mlab.axes(xlabel="x", ylabel="y", zlabel="z")
     mlab.show()
@@ -170,7 +156,7 @@ def plot_box_pcd(x, y, z, boxes):
 
 def plot_pred_fusion(args):
     fig = mlab.figure(bgcolor=(1, 1, 1), size=(640, 500))
-    data_all = load_pkl(osp.join(args.path, "result", id_to_str(args.id) + ".pkl"))
+    data_all = load_pkl(osp.join(args.path, "test", id_to_str(args.id) + ".pkl"))
     print(data_all.keys())
 
     draw_boxes3d(
@@ -184,7 +170,8 @@ def plot_pred_fusion(args):
         fig,
         color=(0, 0, 255 / 255),
     )
-    mlab.show()
+    mlab.savefig(osp.join(args.path, "test", id_to_str(args.id) + ".png"))
+    # mlab.show()
 
 
 def plot_pred_single(args):
@@ -192,7 +179,7 @@ def plot_pred_single(args):
     path = args.path
     file = id_to_str(args.id) + ".pkl"
 
-    data_label = load_pkl(osp.join(path, "result", file))
+    data_label = load_pkl(osp.join(path, "test", file))
     label_3d_bboxes = data_label["boxes_3d"]
     if len(label_3d_bboxes.shape) != 3:
         label_3d_bboxes = label_3d_bboxes.squeeze(axis=0)
@@ -202,7 +189,7 @@ def plot_pred_single(args):
 
     draw_boxes3d(label_3d_bboxes, fig, color=(0, 1, 0))  # vis_label
     draw_boxes3d(pred_3d_bboxes, fig, color=(1, 0, 0))  # vis_pred
-
+    mlab.savefig(osp.join(path, "vis", file[:-4] + ".png"))
     mlab.show()
 
 
