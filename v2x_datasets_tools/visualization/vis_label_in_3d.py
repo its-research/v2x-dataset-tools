@@ -5,11 +5,25 @@ import os.path as osp
 
 import mayavi.mlab as mlab
 import numpy as np
+from matplotlib import pyplot as plt
 from pypcd import pypcd
 from vis_utils import id_to_str, load_pkl
 
+import v2x_datasets_tools.visualization.simple_plot3d.canvas_3d as canvas_3d
 
-def draw_boxes3d(boxes3d, fig, arrows=None, color=(1, 0, 0), line_width=2, draw_text=True, text_scale=(1, 1, 1), color_list=None):
+# import v2x_datasets_tools.visualization.simple_plot3d.canvas_bev as canvas_bev
+
+
+def draw_boxes3d(
+    boxes3d,
+    fig,
+    arrows=None,
+    color=(1, 0, 0),
+    line_width=2,
+    draw_text=True,
+    text_scale=(1, 1, 1),
+    color_list=None,
+):
     """
     boxes3d: numpy array (n,8,3) for XYZs of the box corners
     fig: mayavi figure handler
@@ -35,7 +49,15 @@ def draw_boxes3d(boxes3d, fig, arrows=None, color=(1, 0, 0), line_width=2, draw_
         if color_list is not None:
             color = color_list[n]
         if draw_text:
-            mlab.text3d(b[4, 0], b[4, 1], b[4, 2], "%d" % n, scale=text_scale, color=color, figure=fig)
+            mlab.text3d(
+                b[4, 0],
+                b[4, 1],
+                b[4, 2],
+                "%d" % n,
+                scale=text_scale,
+                color=color,
+                figure=fig,
+            )
         for k in range(0, 4):
             i, j = k, (k + 1) % 4
             mlab.plot3d(
@@ -84,16 +106,28 @@ def read_bin(path):
 def read_pcd(pcd_path):
     pcd = pypcd.PointCloud.from_path(pcd_path)
 
+    pcd_np_points = np.zeros((pcd.points, 4), dtype=np.float32)
+    pcd_np_points[:, 0] = np.transpose(pcd.pc_data["x"])
+    pcd_np_points[:, 1] = np.transpose(pcd.pc_data["y"])
+    pcd_np_points[:, 2] = np.transpose(pcd.pc_data["z"])
+    pcd_np_points[:, 3] = np.transpose(pcd.pc_data["intensity"]) / 256.0
+
     x = np.transpose(pcd.pc_data["x"])
     y = np.transpose(pcd.pc_data["y"])
     z = np.transpose(pcd.pc_data["z"])
-    return x, y, z
+    return x, y, z, pcd_np_points
 
 
 def get_lidar_3d_8points(obj_size, yaw_lidar, center_lidar):
     center_lidar = [center_lidar[0], center_lidar[1], center_lidar[2]]
 
-    lidar_r = np.matrix([[math.cos(yaw_lidar), -math.sin(yaw_lidar), 0], [math.sin(yaw_lidar), math.cos(yaw_lidar), 0], [0, 0, 1]])
+    lidar_r = np.matrix(
+        [
+            [math.cos(yaw_lidar), -math.sin(yaw_lidar), 0],
+            [math.sin(yaw_lidar), math.cos(yaw_lidar), 0],
+            [0, 0, 1],
+        ]
+    )
     l, w, h = obj_size
     center_lidar[2] = center_lidar[2] - h / 2
     corners_3d_lidar = np.matrix(
@@ -132,25 +166,29 @@ def read_label_bboxes(label_path):
     return boxes
 
 
-def plot_box_pcd(x, y, z, boxes):
+def plot_box_pcd(x, y, z, pcd_np_points, boxes):
+    canvas = canvas_3d.Canvas_3D(left_hand=True)
+    canvas_xy, valid_mask = canvas.get_canvas_coords(pcd_np_points)
+    canvas.draw_canvas_points(canvas_xy[valid_mask])
+
+    canvas.draw_boxes(np.array(boxes), colors=(0, 255, 0))
+
+    plt.axis("off")
+    plt.imshow(canvas.canvas)
+    plt.tight_layout()
+    plt.savefig("test1.png", transparent=False, dpi=400, pad_inches=0.0)
+    plt.clf()
+
     vals = "height"
     if vals == "height":
         col = z
-    fig = mlab.figure(bgcolor=(0, 0, 0), size=(640, 500))
-    mlab.points3d(
-        x,
-        y,
-        z,
-        col,  # Values used for Color
-        mode="point",
-        colormap="spectral",  # 'bone', 'copper', 'gnuplot'
-        color=(1, 1, 0),  # Used a fixed (r,g,b) instead
-        figure=fig,
-    )
+    fig = mlab.figure(bgcolor=(0, 0, 0), size=(640, 640))
+    mlab.points3d(x, y, z, col, mode="point", colormap="spectral", color=(1, 1, 0), figure=fig)
     draw_boxes3d(np.array(boxes), fig, arrows=None)
-    mlab.savefig("test.png")
+    # mlab.axes(xlabel="x", ylabel="y", zlabel="z")
+    # mlab.view(distance=600)
 
-    mlab.axes(xlabel="x", ylabel="y", zlabel="z")
+    mlab.savefig("test.png")
     mlab.show()
 
 
@@ -194,18 +232,33 @@ def plot_pred_single(args):
 
 
 def plot_label_pcd(pcd_path, label_path):
-    x, y, z = read_pcd(pcd_path)
+    x, y, z, pcd_np_points = read_pcd(pcd_path)
     boxes = read_label_bboxes(label_path)
 
-    plot_box_pcd(x, y, z, boxes)
+    plot_box_pcd(x, y, z, pcd_np_points, boxes)
 
 
 def add_arguments(parser):
-    parser.add_argument("--task", type=str, default="pcd_label", choices=["fusion", "single", "pcd_label"])
+    parser.add_argument(
+        "--task",
+        type=str,
+        default="pcd_label",
+        choices=["fusion", "single", "pcd_label"],
+    )
     parser.add_argument("--path", type=str, default="./datasets/single-vehicle-side")
     parser.add_argument("--id", type=int, default=0)
-    parser.add_argument("--pcd-path", type=str, default="datasets/single-vehicle-side/velodyne/000029.pcd", help="pcd path to visualize")
-    parser.add_argument("--label-path", type=str, default="./datasets/single-vehicle-side/label/lidar/000029.json", help="label path to visualize")
+    parser.add_argument(
+        "--pcd-path",
+        type=str,
+        default="datasets/single-vehicle-side/velodyne/000029.pcd",
+        help="pcd path to visualize",
+    )
+    parser.add_argument(
+        "--label-path",
+        type=str,
+        default="./datasets/single-vehicle-side/label/lidar/000029.json",
+        help="label path to visualize",
+    )
 
 
 if __name__ == "__main__":
@@ -220,4 +273,4 @@ if __name__ == "__main__":
         plot_pred_single(args)
 
     if args.task == "pcd_label":
-        plot_label_pcd(args.pcd_path, args.lable_path)
+        plot_label_pcd(args.pcd_path, args.label_path)
