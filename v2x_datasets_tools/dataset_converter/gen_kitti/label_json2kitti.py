@@ -28,7 +28,7 @@ def write_kitti_in_txt(my_json, path_txt):
             str(item["3d_location"]["z"]),
         )
         # i15 = str(item["rotation"])
-        i15 = str(-eval(item["rotation"]))
+        i15 = str(-eval(str(item["rotation"])))
         item_list = [i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15]
         item_string = " ".join(item_list) + "\n"
         wf.write(item_string)
