@@ -17,7 +17,8 @@ setup(
     packages=find_packages(),
     url='https://github.com/its-research/v2x-dataset-tools',
     license='MIT',
-    description='An opensource pytorch framework for autonomous driving '
+    description=
+    'An opensource dataset visualization framework for autonomous driving '
     'cooperative detection',
     long_description=open('README.md').read(),
     install_requires=_read_requirements_file(),
