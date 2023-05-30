@@ -1,6 +1,4 @@
-"""
-Bounding box related utility functions
-"""
+"""Bounding box related utility functions."""
 import copy
 import sys
 
@@ -13,15 +11,14 @@ import v2x_datasets_tools.utils.common_utils as common_utils
 from v2x_datasets_tools.utils.transformation_utils import x1_to_x2, x_to_world
 
 
-def corner_to_center_torch(corner3d, order="lwh"):
+def corner_to_center_torch(corner3d, order='lwh'):
     corner3d_ = corner3d.cpu().numpy()
-    return torch.from_numpy(corner_to_center(corner3d_, order)).to(corner3d.device)
+    return torch.from_numpy(corner_to_center(corner3d_,
+                                             order)).to(corner3d.device)
 
 
-def corner_to_center(corner3d, order="lwh"):
-    """
-    Convert 8 corners to x, y, z, dx, dy, dz, yaw.
-    yaw in radians
+def corner_to_center(corner3d, order='lwh'):
+    """Convert 8 corners to x, y, z, dx, dy, dz, yaw. yaw in radians.
 
     Parameters
     ----------
@@ -40,34 +37,71 @@ def corner_to_center(corner3d, order="lwh"):
     batch_size = corner3d.shape[0]
 
     xyz = np.mean(corner3d[:, [0, 3, 5, 6], :], axis=1)
-    h = abs(np.mean(corner3d[:, 4:, 2] - corner3d[:, :4, 2], axis=1, keepdims=True))
-    l = (
-        np.sqrt(np.sum((corner3d[:, 0, [0, 1]] - corner3d[:, 3, [0, 1]]) ** 2, axis=1, keepdims=True))
-        + np.sqrt(np.sum((corner3d[:, 2, [0, 1]] - corner3d[:, 1, [0, 1]]) ** 2, axis=1, keepdims=True))
-        + np.sqrt(np.sum((corner3d[:, 4, [0, 1]] - corner3d[:, 7, [0, 1]]) ** 2, axis=1, keepdims=True))
-        + np.sqrt(np.sum((corner3d[:, 5, [0, 1]] - corner3d[:, 6, [0, 1]]) ** 2, axis=1, keepdims=True))
-    ) / 4
+    h = abs(
+        np.mean(
+            corner3d[:, 4:, 2] - corner3d[:, :4, 2], axis=1, keepdims=True))
+    l = (np.sqrt(
+        np.sum(
+            (corner3d[:, 0, [0, 1]] - corner3d[:, 3, [0, 1]])**2,
+            axis=1,
+            keepdims=True,
+        )) + np.sqrt(
+            np.sum(
+                (corner3d[:, 2, [0, 1]] - corner3d[:, 1, [0, 1]])**2,
+                axis=1,
+                keepdims=True,
+            )) + np.sqrt(
+                np.sum(
+                    (corner3d[:, 4, [0, 1]] - corner3d[:, 7, [0, 1]])**2,
+                    axis=1,
+                    keepdims=True,
+                )) + np.sqrt(
+                    np.sum(
+                        (corner3d[:, 5, [0, 1]] - corner3d[:, 6, [0, 1]])**2,
+                        axis=1,
+                        keepdims=True,
+                    ))) / 4
 
-    w = (
-        np.sqrt(np.sum((corner3d[:, 0, [0, 1]] - corner3d[:, 1, [0, 1]]) ** 2, axis=1, keepdims=True))
-        + np.sqrt(np.sum((corner3d[:, 2, [0, 1]] - corner3d[:, 3, [0, 1]]) ** 2, axis=1, keepdims=True))
-        + np.sqrt(np.sum((corner3d[:, 4, [0, 1]] - corner3d[:, 5, [0, 1]]) ** 2, axis=1, keepdims=True))
-        + np.sqrt(np.sum((corner3d[:, 6, [0, 1]] - corner3d[:, 7, [0, 1]]) ** 2, axis=1, keepdims=True))
-    ) / 4
+    w = (np.sqrt(
+        np.sum(
+            (corner3d[:, 0, [0, 1]] - corner3d[:, 1, [0, 1]])**2,
+            axis=1,
+            keepdims=True,
+        )) + np.sqrt(
+            np.sum(
+                (corner3d[:, 2, [0, 1]] - corner3d[:, 3, [0, 1]])**2,
+                axis=1,
+                keepdims=True,
+            )) + np.sqrt(
+                np.sum(
+                    (corner3d[:, 4, [0, 1]] - corner3d[:, 5, [0, 1]])**2,
+                    axis=1,
+                    keepdims=True,
+                )) + np.sqrt(
+                    np.sum(
+                        (corner3d[:, 6, [0, 1]] - corner3d[:, 7, [0, 1]])**2,
+                        axis=1,
+                        keepdims=True,
+                    ))) / 4
 
-    theta = (
-        np.arctan2(corner3d[:, 1, 1] - corner3d[:, 2, 1], corner3d[:, 1, 0] - corner3d[:, 2, 0])
-        + np.arctan2(corner3d[:, 0, 1] - corner3d[:, 3, 1], corner3d[:, 0, 0] - corner3d[:, 3, 0])
-        + np.arctan2(corner3d[:, 5, 1] - corner3d[:, 6, 1], corner3d[:, 5, 0] - corner3d[:, 6, 0])
-        + np.arctan2(corner3d[:, 4, 1] - corner3d[:, 7, 1], corner3d[:, 4, 0] - corner3d[:, 7, 0])
-    )[:, np.newaxis] / 4
+    theta = (np.arctan2(corner3d[:, 1, 1] - corner3d[:, 2, 1],
+                        corner3d[:, 1, 0] - corner3d[:, 2, 0]) +
+             np.arctan2(corner3d[:, 0, 1] - corner3d[:, 3, 1],
+                        corner3d[:, 0, 0] - corner3d[:, 3, 0]) +
+             np.arctan2(corner3d[:, 5, 1] - corner3d[:, 6, 1],
+                        corner3d[:, 5, 0] - corner3d[:, 6, 0]) +
+             np.arctan2(corner3d[:, 4, 1] - corner3d[:, 7, 1],
+                        corner3d[:, 4, 0] - corner3d[:, 7, 0]))[:,
+                                                                np.newaxis] / 4
 
-    if order == "lwh":
-        return np.concatenate([xyz, l, w, h, theta], axis=1).reshape(batch_size, 7)
-    elif order == "hwl":
-        return np.concatenate([xyz, h, w, l, theta], axis=1).reshape(batch_size, 7)
+    if order == 'lwh':
+        return np.concatenate([xyz, l, w, h, theta],
+                              axis=1).reshape(batch_size, 7)
+    elif order == 'hwl':
+        return np.concatenate([xyz, h, w, l, theta],
+                              axis=1).reshape(batch_size, 7)
     else:
-        sys.exit("Unknown order")
+        sys.exit('Unknown order')
 
 
 def boxes_to_corners2d(boxes3d, order):
@@ -95,7 +129,7 @@ def boxes_to_corners2d(boxes3d, order):
     return corners2d
 
 
-def boxes2d_to_corners2d(boxes2d, order="lwh"):
+def boxes2d_to_corners2d(boxes2d, order='lwh'):
     """
       0 -------- 1
       |          |
@@ -115,21 +149,23 @@ def boxes2d_to_corners2d(boxes2d, order="lwh"):
         (..., 4, 2), the 4 corners of the bounding box.
 
     """
-    assert order == "lwh", "boxes2d_to_corners_2d only supports lwh order for now."
+    assert order == 'lwh', 'boxes2d_to_corners_2d only supports lwh order for now.'
     boxes2d, is_numpy = common_utils.check_numpy_to_torch(boxes2d)
     template = boxes2d.new_tensor(([1, -1], [1, 1], [-1, 1], [-1, -1])) / 2
     input_shape = boxes2d.shape
     boxes2d = boxes2d.view(-1, 5)
     corners2d = boxes2d[:, None, 2:4].repeat(1, 4, 1) * template[None, :, :]
-    corners2d = common_utils.rotate_points_along_z_2d(corners2d.view(-1, 2), boxes2d[:, 4].repeat_interleave(4)).view(-1, 4, 2)
+    corners2d = common_utils.rotate_points_along_z_2d(
+        corners2d.view(-1, 2), boxes2d[:,
+                                       4].repeat_interleave(4)).view(-1, 4, 2)
     corners2d += boxes2d[:, None, 0:2]
     corners2d = corners2d.view(*(input_shape[:-1]), 4, 2)
     return corners2d
 
 
 def boxes_to_corners_3d(boxes3d, order):
-    """
-        4 -------- 5
+    """4 -------- 5.
+
        /|         /|
       7 -------- 6 .
       | |        | |
@@ -159,41 +195,36 @@ def boxes_to_corners_3d(boxes3d, order):
     | . x
     |/
     +-------> y
-
     """
 
     boxes3d, is_numpy = common_utils.check_numpy_to_torch(boxes3d)
     boxes3d_ = boxes3d
 
-    if order == "hwl":
+    if order == 'hwl':
         boxes3d_ = boxes3d[:, [0, 1, 2, 5, 4, 3, 6]]
 
     template = (
-        boxes3d_.new_tensor(
-            (
-                [1, -1, -1],
-                [1, 1, -1],
-                [-1, 1, -1],
-                [-1, -1, -1],
-                [1, -1, 1],
-                [1, 1, 1],
-                [-1, 1, 1],
-                [-1, -1, 1],
-            )
-        )
-        / 2
-    )
+        boxes3d_.new_tensor((
+            [1, -1, -1],
+            [1, 1, -1],
+            [-1, 1, -1],
+            [-1, -1, -1],
+            [1, -1, 1],
+            [1, 1, 1],
+            [-1, 1, 1],
+            [-1, -1, 1],
+        )) / 2)
 
     corners3d = boxes3d_[:, None, 3:6].repeat(1, 8, 1) * template[None, :, :]
-    corners3d = common_utils.rotate_points_along_z(corners3d.view(-1, 8, 3), boxes3d_[:, 6]).view(-1, 8, 3)
+    corners3d = common_utils.rotate_points_along_z(
+        corners3d.view(-1, 8, 3), boxes3d_[:, 6]).view(-1, 8, 3)
     corners3d += boxes3d_[:, None, 0:3]
 
     return corners3d.numpy() if is_numpy else corners3d
 
 
 def box3d_to_2d(box3d):
-    """
-    Convert 3D bounding box to 2D.
+    """Convert 3D bounding box to 2D.
 
     Parameters
     ----------
@@ -210,9 +241,8 @@ def box3d_to_2d(box3d):
 
 
 def corner2d_to_standup_box(box2d):
-    """
-    Find the minmaxx, minmaxy for each 2d box. (N, 4, 2) -> (N, 4)
-    x1, y1, x2, y2
+    """Find the minmaxx, minmaxy for each 2d box. (N, 4, 2) -> (N, 4) x1, y1,
+    x2, y2.
 
     Parameters
     ----------
@@ -236,8 +266,7 @@ def corner2d_to_standup_box(box2d):
 
 
 def corner_to_standup_box_torch(box_corner):
-    """
-    Find the minmax x and y for each bounding box.
+    """Find the minmax x and y for each bounding box.
 
     Parameters
     ----------
@@ -263,8 +292,7 @@ def corner_to_standup_box_torch(box_corner):
 
 
 def project_box3d(box3d, transformation_matrix):
-    """
-    Project the 3d bounding box to another coordinate system based on the
+    """Project the 3d bounding box to another coordinate system based on the
     transfomration matrix.
 
     Parameters
@@ -282,7 +310,8 @@ def project_box3d(box3d, transformation_matrix):
     """
     assert transformation_matrix.shape == (4, 4)
     box3d, is_numpy = common_utils.check_numpy_to_torch(box3d)
-    transformation_matrix, _ = common_utils.check_numpy_to_torch(transformation_matrix)
+    transformation_matrix, _ = common_utils.check_numpy_to_torch(
+        transformation_matrix)
 
     # (N, 3, 8)
     box3d_corner = box3d.transpose(1, 2)
@@ -300,8 +329,7 @@ def project_box3d(box3d, transformation_matrix):
 
 
 def project_points_by_matrix_torch(points, transformation_matrix):
-    """
-    Project the points to another coordinate system based on the
+    """Project the points to another coordinate system based on the
     transfomration matrix.
 
     IT NOT USED. LATTER ONE WITH THE SAME NAME WILL BE USED.
@@ -321,16 +349,15 @@ def project_points_by_matrix_torch(points, transformation_matrix):
     """
     # convert to homogeneous  coordinates via padding 1 at the last dimension.
     # (N, 4)
-    points_homogeneous = F.pad(points, (0, 1), mode="constant", value=1)
+    points_homogeneous = F.pad(points, (0, 1), mode='constant', value=1)
     # (N, 4)
-    projected_points = torch.einsum("ik, jk->ij", points_homogeneous, transformation_matrix)
+    projected_points = torch.einsum('ik, jk->ij', points_homogeneous,
+                                    transformation_matrix)
     return projected_points[:, :3]
 
 
 def get_mask_for_boxes_within_range_torch(boxes, gt_range):
-    """
-    Generate mask to remove the bounding boxes
-    outside the range.
+    """Generate mask to remove the bounding boxes outside the range.
 
     Parameters
     ----------
@@ -349,15 +376,25 @@ def get_mask_for_boxes_within_range_torch(boxes, gt_range):
 
     # mask out the gt bounding box out fixed range (-140, -40, -3, 140, 40 1)
     device = boxes.device
-    boundary_lower_range = torch.Tensor(gt_range[:2]).reshape(1, 1, -1).to(device)
-    boundary_higher_range = torch.Tensor(gt_range[3:5]).reshape(1, 1, -1).to(device)
+    boundary_lower_range = torch.Tensor(gt_range[:2]).reshape(1, 1,
+                                                              -1).to(device)
+    boundary_higher_range = torch.Tensor(gt_range[3:5]).reshape(1, 1,
+                                                                -1).to(device)
 
-    mask = torch.all(torch.all(boxes[:, :, :2] >= boundary_lower_range, dim=-1) & torch.all(boxes[:, :, :2] <= boundary_higher_range, dim=-1), dim=-1)
+    mask = torch.all(
+        torch.all(boxes[:, :, :2] >= boundary_lower_range, dim=-1)
+        & torch.all(boxes[:, :, :2] <= boundary_higher_range, dim=-1),
+        dim=-1,
+    )
 
     return mask
 
 
-def mask_boxes_outside_range_numpy(boxes, limit_range, order, min_num_corners=8, return_mask=False):
+def mask_boxes_outside_range_numpy(boxes,
+                                   limit_range,
+                                   order,
+                                   min_num_corners=8,
+                                   return_mask=False):
     """
     Parameters
     ----------
@@ -387,7 +424,8 @@ def mask_boxes_outside_range_numpy(boxes, limit_range, order, min_num_corners=8,
     if boxes.shape[1] == 7:
         new_boxes = boxes_to_corners_3d(new_boxes, order)
 
-    mask = ((new_boxes >= limit_range[0:3]) & (new_boxes <= limit_range[3:6])).all(axis=2)
+    mask = ((new_boxes >= limit_range[0:3]) &
+            (new_boxes <= limit_range[3:6])).all(axis=2)
     mask = mask.sum(axis=1) >= min_num_corners  # (N)
 
     if return_mask:
@@ -396,8 +434,7 @@ def mask_boxes_outside_range_numpy(boxes, limit_range, order, min_num_corners=8,
 
 
 def create_bbx(extent):
-    """
-    Create bounding box with 8 corners under obstacle vehicle reference.
+    """Create bounding box with 8 corners under obstacle vehicle reference.
 
     Parameters
     ----------
@@ -410,25 +447,23 @@ def create_bbx(extent):
         The bounding box with 8 corners, shape: (8, 3)
     """
 
-    bbx = np.array(
-        [
-            [extent[0], -extent[1], -extent[2]],
-            [extent[0], extent[1], -extent[2]],
-            [-extent[0], extent[1], -extent[2]],
-            [-extent[0], -extent[1], -extent[2]],
-            [extent[0], -extent[1], extent[2]],
-            [extent[0], extent[1], extent[2]],
-            [-extent[0], extent[1], extent[2]],
-            [-extent[0], -extent[1], extent[2]],
-        ]
-    )
+    bbx = np.array([
+        [extent[0], -extent[1], -extent[2]],
+        [extent[0], extent[1], -extent[2]],
+        [-extent[0], extent[1], -extent[2]],
+        [-extent[0], -extent[1], -extent[2]],
+        [extent[0], -extent[1], extent[2]],
+        [extent[0], extent[1], extent[2]],
+        [-extent[0], extent[1], extent[2]],
+        [-extent[0], -extent[1], extent[2]],
+    ])
 
     return bbx
 
 
-def project_world_objects(object_dict, output_dict, lidar_pose, lidar_range, order):
-    """
-    Project the objects under world coordinates into another coordinate
+def project_world_objects(object_dict, output_dict, lidar_pose, lidar_range,
+                          order):
+    """Project the objects under world coordinates into another coordinate
     based on the provided extrinsic.
 
     Parameters
@@ -449,12 +484,19 @@ def project_world_objects(object_dict, output_dict, lidar_pose, lidar_range, ord
         'lwh' or 'hwl'
     """
     for object_id, object_content in object_dict.items():
-        location = object_content["location"]
-        rotation = object_content["angle"]
-        center = object_content["center"]
-        extent = object_content["extent"]
+        location = object_content['location']
+        rotation = object_content['angle']
+        center = object_content['center']
+        extent = object_content['extent']
 
-        object_pose = [location[0] + center[0], location[1] + center[1], location[2] + center[2], rotation[0], rotation[1], rotation[2]]
+        object_pose = [
+            location[0] + center[0],
+            location[1] + center[1],
+            location[2] + center[2],
+            rotation[0],
+            rotation[1],
+            rotation[2],
+        ]
 
         object2lidar = x1_to_x2(object_pose, lidar_pose)
 
@@ -467,15 +509,16 @@ def project_world_objects(object_dict, output_dict, lidar_pose, lidar_range, ord
         bbx_lidar = np.dot(object2lidar, bbx).T
         bbx_lidar = np.expand_dims(bbx_lidar[:, :3], 0)
         bbx_lidar = corner_to_center(bbx_lidar, order=order)
-        bbx_lidar = mask_boxes_outside_range_numpy(bbx_lidar, lidar_range, order)
+        bbx_lidar = mask_boxes_outside_range_numpy(bbx_lidar, lidar_range,
+                                                   order)
 
         if bbx_lidar.shape[0] > 0:
             output_dict.update({object_id: bbx_lidar})
 
 
-def project_world_objects_v2x(object_dict, output_dict, reference_lidar_pose, lidar_range, order, lidar_np):
-    """
-    Project the objects under world coordinates into another coordinate
+def project_world_objects_v2x(object_dict, output_dict, reference_lidar_pose,
+                              lidar_range, order, lidar_np):
+    """Project the objects under world coordinates into another coordinate
     based on the provided extrinsic.
 
     Parameters
@@ -505,8 +548,8 @@ def project_world_objects_v2x(object_dict, output_dict, reference_lidar_pose, li
     """
     # from icecream import ic
 
-    gt_boxes = object_dict["gt_boxes"]
-    object_ids = object_dict["object_ids"]
+    gt_boxes = object_dict['gt_boxes']
+    object_ids = object_dict['object_ids']
     for i, object_content in enumerate(gt_boxes):
         x, y, z, dx, dy, dz, w, a, b, c = object_content
 
@@ -516,10 +559,11 @@ def project_world_objects_v2x(object_dict, output_dict, reference_lidar_pose, li
 
         T_world_lidar = x_to_world(reference_lidar_pose)
 
-        object2lidar = np.linalg.solve(T_world_lidar, T_world_object)  # T_lidar_object
+        object2lidar = np.linalg.solve(T_world_lidar,
+                                       T_world_object)  # T_lidar_object
 
         # shape (3, 8).
-        # or we can use the create_bbx funcion.
+        # or we can use the create_bbx function.
         x_corners = dx / 2 * np.array([1, 1, -1, -1, 1, 1, -1, -1])  # (8,)
         y_corners = dy / 2 * np.array([-1, 1, 1, -1, -1, 1, 1, -1])
         z_corners = dz / 2 * np.array([-1, -1, -1, -1, 1, 1, 1, 1])
@@ -538,15 +582,15 @@ def project_world_objects_v2x(object_dict, output_dict, reference_lidar_pose, li
         lidar_range_z_larger[2] -= 1
         lidar_range_z_larger[5] += 1
 
-        bbx_lidar = mask_boxes_outside_range_numpy(bbx_lidar, lidar_range_z_larger, order)
+        bbx_lidar = mask_boxes_outside_range_numpy(bbx_lidar,
+                                                   lidar_range_z_larger, order)
 
         if bbx_lidar.shape[0] > 0:
             output_dict.update({object_ids[i]: bbx_lidar})
 
 
 def get_points_in_rotated_box(p, box_corner):
-    """
-    Get points within a rotated bounding box (2D version).
+    """Get points within a rotated bounding box (2D version).
 
     Parameters
     ----------
@@ -559,7 +603,6 @@ def get_points_in_rotated_box(p, box_corner):
     -------
     p_in_box : numpy.array
         Points within the box.
-
     """
     edge1 = box_corner[1, :] - box_corner[0, :]
     edge2 = box_corner[3, :] - box_corner[0, :]
@@ -578,8 +621,7 @@ def get_points_in_rotated_box(p, box_corner):
 
 
 def get_points_in_rotated_box_3d(p, box_corner):
-    """
-    Get points within a rotated bounding box (3D version).
+    """Get points within a rotated bounding box (3D version).
 
     Parameters
     ----------
@@ -592,7 +634,6 @@ def get_points_in_rotated_box_3d(p, box_corner):
     -------
     p_in_box : numpy.array
         Points within the box.
-
     """
     edge1 = box_corner[1, :] - box_corner[0, :]
     edge2 = box_corner[3, :] - box_corner[0, :]
@@ -618,8 +659,8 @@ def get_points_in_rotated_box_3d(p, box_corner):
 
 
 def get_projection_length_for_vector_projection(a, b):
-    """
-    Get projection length for the Vector projection of a onto b s.t.
+    """Get projection length for the Vector projection of a onto b s.t.
+
     a_projected = length * b. (2D version) See
     https://en.wikipedia.org/wiki/Vector_projection#Vector_projection_2
     for more details.
@@ -643,7 +684,7 @@ def get_projection_length_for_vector_projection(a, b):
 
 
 def nms_rotated(boxes, scores, threshold):
-    """Performs rorated non-maximum suppression and returns indices of kept
+    """Performs rotated non-maximum suppression and returns indices of kept
     boxes.
 
     Parameters
@@ -669,7 +710,7 @@ def nms_rotated(boxes, scores, threshold):
     polygons = common_utils.convert_format(boxes)
 
     top = 1000
-    # Get indicies of boxes sorted by scores (highest first)
+    # Get indices of boxes sorted by scores (highest first)
     ixs = scores.argsort()[::-1][:top]
 
     pick = []
@@ -691,9 +732,8 @@ def nms_rotated(boxes, scores, threshold):
 
 
 def nms_pytorch(boxes: torch.tensor, thresh_iou: float):
-    """
-    Apply non-maximum suppression to avoid detecting too many
-    overlapping bounding boxes for a given object.
+    """Apply non-maximum suppression to avoid detecting too many overlapping
+    bounding boxes for a given object.
 
     Parameters
     ----------
@@ -735,7 +775,8 @@ def nms_pytorch(boxes: torch.tensor, thresh_iou: float):
         idx = order[-1]
 
         # push S in filtered predictions list
-        keep.append(idx.numpy().item() if not idx.is_cuda else idx.cpu().detach().numpy().item())
+        keep.append(idx.numpy().item() if not idx.is_cuda else idx.cpu().
+                    detach().numpy().item())
 
         # remove S from P
         order = order[:-1]
@@ -788,8 +829,7 @@ def nms_pytorch(boxes: torch.tensor, thresh_iou: float):
 
 
 def remove_large_pred_bbx(bbx_3d):
-    """
-    Remove large bounding box.
+    """Remove large bounding box.
 
     Parameters
     ----------
@@ -820,8 +860,7 @@ def remove_large_pred_bbx(bbx_3d):
 
 
 def remove_bbx_abnormal_z(bbx_3d):
-    """
-    Remove bounding box that has negative z axis.
+    """Remove bounding box that has negative z axis.
 
     Parameters
     ----------
@@ -868,7 +907,14 @@ def remove_bbx_abnormal_z(bbx_3d):
 #     return projected_points[:, :3] if not is_numpy else projected_points[:, :3].numpy()
 
 
-def box_encode(boxes, anchors, encode_angle_to_vector=False, encode_angle_with_residual=False, smooth_dim=False, norm_velo=False):
+def box_encode(
+    boxes,
+    anchors,
+    encode_angle_to_vector=False,
+    encode_angle_with_residual=False,
+    smooth_dim=False,
+    norm_velo=False,
+):
     """box encode for VoxelNet
     Args:
         boxes ([N, 7] Tensor): normal boxes: x, y, z, w, l, h, r.
@@ -946,14 +992,17 @@ def box_decode(
     if box_ndim == 9:  # False
         xa, ya, za, wa, la, ha, vxa, vya, ra = torch.split(anchors, 1, dim=-1)
         if encode_angle_to_vector:
-            xt, yt, zt, wt, lt, ht, vxt, vyt, rtx, rty = torch.split(box_encodings, 1, dim=-1)
+            xt, yt, zt, wt, lt, ht, vxt, vyt, rtx, rty = torch.split(
+                box_encodings, 1, dim=-1)
         else:
-            xt, yt, zt, wt, lt, ht, vxt, vyt, rt = torch.split(box_encodings, 1, dim=-1)
+            xt, yt, zt, wt, lt, ht, vxt, vyt, rt = torch.split(
+                box_encodings, 1, dim=-1)
 
     elif box_ndim == 7:
         xa, ya, za, wa, la, ha, ra = torch.split(anchors, 1, dim=-1)
         if encode_angle_to_vector:  # False
-            xt, yt, zt, wt, lt, ht, rtx, rty = torch.split(box_encodings, 1, dim=-1)
+            xt, yt, zt, wt, lt, ht, rtx, rty = torch.split(
+                box_encodings, 1, dim=-1)
         else:
             xt, yt, zt, wt, lt, ht, rt = torch.split(box_encodings, 1, dim=-1)
 
@@ -1000,9 +1049,9 @@ def box_decode(
     return torch.cat(ret, dim=-1)
 
 
-def project_world_objects_dairv2x(object_list, output_dict, lidar_pose, lidar_range, order):
-    """
-    Project the objects under world coordinates into another coordinate
+def project_world_objects_dairv2x(object_list, output_dict, lidar_pose,
+                                  lidar_range, order):
+    """Project the objects under world coordinates into another coordinate
     based on the provided extrinsic.
 
     Parameters
@@ -1029,8 +1078,9 @@ def project_world_objects_dairv2x(object_list, output_dict, lidar_pose, lidar_ra
         lidar_to_world = x_to_world(lidar_pose)  # T_world_lidar
         world_to_lidar = np.linalg.inv(lidar_to_world)
 
-        corners_world = np.array(object_content["world_8_points"])  # [8,3]
-        corners_world_homo = np.pad(corners_world, ((0, 0), (0, 1)), constant_values=1)  # [8, 4]
+        corners_world = np.array(object_content['world_8_points'])  # [8,3]
+        corners_world_homo = np.pad(
+            corners_world, ((0, 0), (0, 1)), constant_values=1)  # [8, 4]
         corners_lidar = (world_to_lidar @ corners_world_homo.T).T
 
         lidar_range_z_larger = copy.deepcopy(lidar_range)
@@ -1040,14 +1090,14 @@ def project_world_objects_dairv2x(object_list, output_dict, lidar_pose, lidar_ra
         bbx_lidar = corners_lidar
         bbx_lidar = np.expand_dims(bbx_lidar[:, :3], 0)  # [1, 8, 3]
         bbx_lidar = corner_to_center(bbx_lidar, order=order)
-        bbx_lidar = mask_boxes_outside_range_numpy(bbx_lidar, lidar_range_z_larger, order)
+        bbx_lidar = mask_boxes_outside_range_numpy(bbx_lidar,
+                                                   lidar_range_z_larger, order)
         if bbx_lidar.shape[0] > 0:
             output_dict.update({object_id: bbx_lidar})
 
 
 def load_single_objects_dairv2x(object_list, output_dict, lidar_range, order):
-    """
-    Load the objects under ego coordinates.
+    """Load the objects under ego coordinates.
 
     Parameters
     ----------
@@ -1066,15 +1116,15 @@ def load_single_objects_dairv2x(object_list, output_dict, lidar_range, order):
     i = 0
     for object_content in object_list:
         object_id = i
-        if "rotation" not in object_content:
+        if 'rotation' not in object_content:
             print(object_content)
-        x = object_content["3d_location"]["x"]
-        y = object_content["3d_location"]["y"]
-        z = object_content["3d_location"]["z"]
-        l = object_content["3d_dimensions"]["l"]
-        h = object_content["3d_dimensions"]["h"]
-        w = object_content["3d_dimensions"]["w"]
-        rotation = object_content["rotation"]
+        x = object_content['3d_location']['x']
+        y = object_content['3d_location']['y']
+        z = object_content['3d_location']['z']
+        l = object_content['3d_dimensions']['l']
+        h = object_content['3d_dimensions']['h']
+        w = object_content['3d_dimensions']['w']
+        rotation = object_content['rotation']
 
         if l == 0 or h == 0 or w == 0:
             continue
@@ -1084,18 +1134,23 @@ def load_single_objects_dairv2x(object_list, output_dict, lidar_range, order):
         lidar_range_z_larger[2] -= 1
         lidar_range_z_larger[5] += 1
 
-        bbx_lidar = [x, y, z, h, w, l, rotation] if order == "hwl" else [x, y, z, l, w, h, rotation]  # suppose order is in ['hwl', 'lwh']
+        bbx_lidar = ([x, y, z, h, w, l, rotation]
+                     if order == 'hwl' else [x, y, z, l, w, h, rotation]
+                     )  # suppose order is in ['hwl', 'lwh']
         bbx_lidar = np.array(bbx_lidar).reshape(1, -1)  # [1,7]
 
-        bbx_lidar = mask_boxes_outside_range_numpy(bbx_lidar, lidar_range_z_larger, order)
+        bbx_lidar = mask_boxes_outside_range_numpy(bbx_lidar,
+                                                   lidar_range_z_larger, order)
         if bbx_lidar.shape[0] > 0:
-            if object_content["type"] == "Car" or object_content["type"] == "Van" or object_content["type"] == "Truck" or object_content["type"] == "Bus":
+            if (object_content['type'] == 'Car'
+                    or object_content['type'] == 'Van'
+                    or object_content['type'] == 'Truck'
+                    or object_content['type'] == 'Bus'):
                 output_dict.update({object_id: bbx_lidar})
 
 
 def match_box(object_dict_c, object_list_s):
-    """
-    Match objects in single-vehicle view and the cooperative view.
+    """Match objects in single-vehicle view and the cooperative view.
 
     Parameters
     ----------
@@ -1106,7 +1161,9 @@ def match_box(object_dict_c, object_list_s):
         The list contains objects in single vehicle view.
     """
     object_ids_vis = []
-    objects_s = [np.array(list(o["3d_location"].values())) for o in object_list_s]
+    objects_s = [
+        np.array(list(o['3d_location'].values())) for o in object_list_s
+    ]
     for obj_id, obj_c in object_dict_c.items():
         for obj_s in objects_s:
             if (np.abs((obj_c[0, :3] - obj_s)) < 0.1).sum() == 0:

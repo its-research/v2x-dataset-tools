@@ -1,7 +1,4 @@
-"""
-Transformation utils
-"""
-
+"""Transformation utils."""
 
 import numpy as np
 import torch
@@ -80,15 +77,18 @@ def pose_to_tfm(pose):
 
 
 def tfm_to_pose(tfm: np.ndarray):
-    """
-    turn transformation matrix to [x, y, z, roll, yaw, pitch]
-    we use radians format.
+    """turn transformation matrix to [x, y, z, roll, yaw, pitch] we use radians
+    format.
+
     tfm is pose in transformation format, and XYZ order, i.e. roll-pitch-yaw
     """
-    # There forumlas are designed from x_to_world, but equal to the one below.
+    # There formulas are designed from x_to_world, but equal to the one below.
     yaw = np.degrees(np.arctan2(tfm[1, 0], tfm[0, 0]))  # clockwise in carla
-    roll = np.degrees(np.arctan2(-tfm[2, 1], tfm[2, 2]))  # but counter-clockwise in carla
-    pitch = np.degrees(np.arctan2(tfm[2, 0], ((tfm[2, 1] ** 2 + tfm[2, 2] ** 2) ** 0.5)))  # but counter-clockwise in carla
+    roll = np.degrees(np.arctan2(-tfm[2, 1],
+                                 tfm[2, 2]))  # but counter-clockwise in carla
+    pitch = np.degrees(
+        np.arctan2(tfm[2, 0], ((tfm[2, 1]**2 + tfm[2, 2]**2)**
+                               0.5)))  # but counter-clockwise in carla
 
     # These formulas are designed for consistent axis orientation
     # yaw = np.degrees(np.arctan2(tfm[1,0], tfm[0,0])) # clockwise in carla
@@ -103,10 +103,7 @@ def tfm_to_pose(tfm: np.ndarray):
 
 
 def tfm_to_xycs_torch(tfm: torch.Tensor):
-    """
-    similar to tfm_to_pose_torch,
-    return x/y/cos(yaw)/sin(yaw)
-    """
+    """similar to tfm_to_pose_torch, return x/y/cos(yaw)/sin(yaw)"""
     x = tfm[:, 0, 3]
     y = tfm[:, 1, 3]
 
@@ -139,10 +136,9 @@ def xycs_to_tfm_torch(xycs: torch.Tensor):
 
 
 def tfm_to_pose_torch(tfm: torch.Tensor, dof: int):
-    """
-    turn transformation matrix to [x, y, z, roll, yaw, pitch]
-    we use degree format.
-    tfm is pose in transformation format, and XYZ order, i.e. roll-pitch-yaw
+    """turn transformation matrix to [x, y, z, roll, yaw, pitch] we use degree
+    format. tfm is pose in transformation format, and XYZ order, i.e. roll-
+    pitch-yaw.
 
     Args:
         tfm: [N, 4, 4]
@@ -151,10 +147,16 @@ def tfm_to_pose_torch(tfm: torch.Tensor, dof: int):
         6dof pose: [N, 6]
     """
 
-    # There forumlas are designed from x_to_world, but equal to the one below.
-    yaw = torch.rad2deg(torch.atan2(tfm[:, 1, 0], tfm[:, 0, 0]))  # clockwise in carla
-    roll = torch.rad2deg(torch.atan2(-tfm[:, 2, 1], tfm[:, 2, 2]))  # but counter-clockwise in carla
-    pitch = torch.rad2deg(torch.atan2(tfm[:, 2, 0], (tfm[:, 2, 1] ** 2 + tfm[:, 2, 2] ** 2) ** 0.5))  # but counter-clockwise in carla
+    # There formulas are designed from x_to_world, but equal to the one below.
+    yaw = torch.rad2deg(torch.atan2(tfm[:, 1, 0],
+                                    tfm[:, 0, 0]))  # clockwise in carla
+    roll = torch.rad2deg(torch.atan2(-tfm[:, 2, 1],
+                                     tfm[:, 2,
+                                         2]))  # but counter-clockwise in carla
+    pitch = torch.rad2deg(
+        torch.atan2(tfm[:, 2, 0],
+                    (tfm[:, 2, 1]**2 +
+                     tfm[:, 2, 2]**2)**0.5))  # but counter-clockwise in carla
 
     # These formulas are designed for consistent axis orientation
     # yaw = torch.rad2deg(torch.atan2(tfm[:,1,0], tfm[:,0,0])) # clockwise in carla
@@ -179,9 +181,8 @@ def tfm_to_pose_torch(tfm: torch.Tensor, dof: int):
 
 
 def x_to_world(pose):
-    """
-    The transformation matrix from x-coordinate system to carla world system
-    Also is the pose in world coordinate: T_world_x
+    """The transformation matrix from x-coordinate system to carla world system
+    Also is the pose in world coordinate: T_world_x.
 
     Parameters
     ----------
@@ -225,8 +226,7 @@ def x_to_world(pose):
 
 
 def x1_to_x2(x1, x2):
-    """
-    Transformation matrix from x1 to x2. T_x2_x1
+    """Transformation matrix from x1 to x2. T_x2_x1.
 
     Parameters
     ----------
@@ -241,9 +241,9 @@ def x1_to_x2(x1, x2):
     -------
     transformation_matrix : np.ndarray
         The transformation matrix.
-
     """
-    x1_to_world = x_to_world(x1)  # wP = x1_to_world * 1P, so x1_to_world is Tw1
+    x1_to_world = x_to_world(
+        x1)  # wP = x1_to_world * 1P, so x1_to_world is Tw1
     x2_to_world = x_to_world(x2)  # Tw2
     world_to_x2 = np.linalg.inv(x2_to_world)  # T2w
 
@@ -281,9 +281,8 @@ def dist_to_continuous(p_dist, displacement_dist, res, downsample_rate):
 
 
 def get_pairwise_transformation_torch(lidar_poses, max_cav, record_len, dof):
-    """
-    Get pair-wise transformation matrix accross different agents.
-    Designed for batch data
+    """Get pair-wise transformation matrix across different agents. Designed
+    for batch data.
 
     Parameters
     ----------
@@ -314,7 +313,8 @@ def get_pairwise_transformation_torch(lidar_poses, max_cav, record_len, dof):
     B = len(record_len)
     lidar_poses_list = regroup(lidar_poses, record_len)
 
-    pairwise_t_matrix = torch.eye(4, device=lidar_poses.device).view(1, 1, 1, 4, 4).repeat(B, max_cav, max_cav, 1, 1)  # (B, L, L, 4, 4)
+    pairwise_t_matrix = (torch.eye(4, device=lidar_poses.device).view(
+        1, 1, 1, 4, 4).repeat(B, max_cav, max_cav, 1, 1))  # (B, L, L, 4, 4)
     # save all transformation matrix in a list in order first.
     for b in range(B):
         lidar_poses = lidar_poses_list[b]  # [N_cav, 3] or [N_cav, 6].
@@ -326,7 +326,8 @@ def get_pairwise_transformation_torch(lidar_poses, max_cav, record_len, dof):
                 if i != j:
                     # i->j: TiPi=TjPj, Tj^(-1)TiPi = Pj
                     # t_matrix = np.dot(np.linalg.inv(t_list[j]), t_list[i])
-                    t_matrix = torch.linalg.solve(t_list[j], t_list[i])  # Tjw*Twi = Tji
+                    t_matrix = torch.linalg.solve(t_list[j],
+                                                  t_list[i])  # Tjw*Twi = Tji
                     pairwise_t_matrix[b][i, j] = t_matrix
 
     return pairwise_t_matrix
@@ -352,7 +353,8 @@ def get_relative_transformation(lidar_poses):
         full_lidar_poses[:, [0, 1, 4]] = lidar_poses
         lidar_poses = full_lidar_poses
 
-    relative_t_matrix = np.eye(4).reshape(1, 4, 4).repeat(N, axis=0)  # [N, 4, 4]
+    relative_t_matrix = np.eye(4).reshape(1, 4, 4).repeat(
+        N, axis=0)  # [N, 4, 4]
     for i in range(1, N):
         relative_t_matrix[i] = x1_to_x2(lidar_poses[i], lidar_poses[0])
 
@@ -370,13 +372,15 @@ def muilt_coord(rotationA2B, translationA2B, rotationB2C, translationB2C):
     return rotation, translation
 
 
-def veh_side_rot_and_trans_to_trasnformation_matrix(lidar_to_novatel_json_file, novatel_to_world_json_file):
+def veh_side_rot_and_trans_to_trasnformation_matrix(
+        lidar_to_novatel_json_file, novatel_to_world_json_file):
     matrix = np.empty([4, 4])
-    rotationA2B = lidar_to_novatel_json_file["transform"]["rotation"]
-    translationA2B = lidar_to_novatel_json_file["transform"]["translation"]
-    rotationB2C = novatel_to_world_json_file["rotation"]
-    translationB2C = novatel_to_world_json_file["translation"]
-    rotation, translation = muilt_coord(rotationA2B, translationA2B, rotationB2C, translationB2C)
+    rotationA2B = lidar_to_novatel_json_file['transform']['rotation']
+    translationA2B = lidar_to_novatel_json_file['transform']['translation']
+    rotationB2C = novatel_to_world_json_file['rotation']
+    translationB2C = novatel_to_world_json_file['translation']
+    rotation, translation = muilt_coord(rotationA2B, translationA2B,
+                                        rotationB2C, translationB2C)
     matrix[0:3, 0:3] = rotation
     matrix[:, 3][0:3] = np.array(translation)[:, 0]
     matrix[3, 0:3] = 0
@@ -385,12 +389,14 @@ def veh_side_rot_and_trans_to_trasnformation_matrix(lidar_to_novatel_json_file, 
     return matrix
 
 
-def inf_side_rot_and_trans_to_trasnformation_matrix(json_file, system_error_offset):
+def inf_side_rot_and_trans_to_trasnformation_matrix(json_file,
+                                                    system_error_offset):
     matrix = np.empty([4, 4])
-    matrix[0:3, 0:3] = json_file["rotation"]
-    translation = np.array(json_file["translation"])
-    translation[0][0] = translation[0][0] + system_error_offset["delta_x"]
-    translation[1][0] = translation[1][0] + system_error_offset["delta_y"]  # 为啥有[1][0]??? --> translation是(3,1)的
+    matrix[0:3, 0:3] = json_file['rotation']
+    translation = np.array(json_file['translation'])
+    translation[0][0] = translation[0][0] + system_error_offset['delta_x']
+    translation[1][0] = (translation[1][0] + system_error_offset['delta_y']
+                         )  # 为啥有[1][0]??? --> translation是(3,1)的
     matrix[:, 3][0:3] = translation[:, 0]
     matrix[3, 0:3] = 0
     matrix[3, 3] = 1
@@ -411,5 +417,5 @@ def test():
     print(tfm2)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     test()
