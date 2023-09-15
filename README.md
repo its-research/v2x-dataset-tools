@@ -2,74 +2,38 @@
 
 ## TODO
 
-- [x] 3D bbox visualization
-- [x] 3D point cloud visualization
-- [ ] 3D bev visualization
-- [ ] rope3d visualization
-- [ ] pred fusion with gt visialization
-- [ ] V2X-Seq-SPD visualization
-- [ ] V2X-Seq-TFD visualization
-- [ ] A9 visualization
+- [x] Run on samples
+- [ ] Run on full dataset
+- [ ] data visualization
+- [ ] result visualization
+- [ ] DDP base
+
 
 ## Prepare
+* python == 3.8.8
+* pytorch == 1.8.1
+* torch-geometric == 1.7.2 (The version of related libraries are listed as follows.)
+  * pytorch-cluster == 1.5.9          
+  * pytorch-geometric == 1.7.2           
+  * pytorch-scatter == 2.0.7           
+  * pytorch-sparse == 0.6.10         
+  * pytorch-spline-conv == 1.2.1
+* pandas == 1.4.4
+* tqdm == 4.60.0
+* tensorboard
+* (Optianl) [nvidia-apex](https://github.com/NVIDIA/apex) == 1.0
 
-```shell
-pip install -r requirements.txt
-python setup.py install
-
-pre-commit install
-pre-commit run --all-files
-```
-
-### Example Datasets
-
-[BaiduPan](https://pan.baidu.com/s/1Bj97xzdT6i6c-NBPxnsWRA?pwd=6puw)
-
-```shell
-ln -s your_path_to_v2x_datasets datasets
-```
+* [Argoverse-api](https://github.com/argoai/argoverse-api)
 
 ## HowTo
-
-```shell
-python visual.py
-
-# python v2x_datasets_tools/visualization/vis_label_in_image.py
-# python v2x_datasets_tools/visualization/vis_label_in_3d.py
-```
-
-## Notice
-
-### linter
-
-Run follow command before you commit:
-
-```shell
-bash ./dev/linter.sh
-```
+1. To prepare data:
+    ```
+    python data/get_data.py
+    ```
+2. To train the TNT model:
+    ```
+    python train_tnt.py
+    ```
 
 ## Issues
-
-### vtk mayavi
-
-ERROR: No matching distribution found for vtk
-
-```shell
-conda install vtk mayavi 'numpy<1.24'
-```
-
-### pypcd
-
-```shell
-git clone <https://github.com/klintan/pypcd.git>
-cd pypcd
-python setup.py install
-```
-
-## Change log
-
-## Reference
-
-- [DAIR-V2X](https://github.com/AIR-THU/DAIR-V2X)
-- [Where2comm](https://github.com/MediaBrain-SJTU/Where2comm)
-- [mmdetection3d](https://github.com/openmmlab/mmdetection3d)
+There are some bugs in data/get_data.py
